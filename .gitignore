@@ -205,3 +205,44 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Data
+data/raw/*
+data/interim/*
+data/processed/*
+
+# Keep folder structure
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Outputs
+outputs/figures/*
+outputs/metrics/*
+outputs/predictions/*
+
+# Keep folder structure
+!outputs/figures/.gitkeep
+!outputs/metrics/.gitkeep
+!outputs/predictions/.gitkeep
+
+# Model artifacts
+*.pt
+*.pth
+*.ckpt
+*.onnx
+checkpoints/
+models_saved/
+
+# Experiment tracking
+runs/
+wandb/
+mlruns/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
