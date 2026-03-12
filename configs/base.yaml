@@ -12,6 +12,7 @@ data:
 
 dataset:
   name: "CIHP"
+  raw_root_dir: "data/raw/CIHP"
   processed_root_dir: "data/processed/cihp_binary"
   image_extensions:
     - ".jpg"
@@ -20,6 +21,17 @@ dataset:
   mask_extension: ".png"
   background_value: 0
   person_value: 1
+
+  raw_splits:
+    train:
+      images_dir: "data/raw/CIHP/Training/Images"
+      category_masks_dir: "data/raw/CIHP/Training/Category_ids"
+      id_file: "data/raw/CIHP/Training/train_id.txt"
+    val:
+      images_dir: "data/raw/CIHP/Validation/Images"
+      category_masks_dir: "data/raw/CIHP/Validation/Category_ids"
+      id_file: "data/raw/CIHP/Validation/val_id.txt"
+
   splits:
     train:
       images_dir: "data/processed/cihp_binary/train/images"
