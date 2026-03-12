@@ -25,6 +25,26 @@ def save_history(history: dict, output_path: Path) -> None:
         json.dump(history, file, indent=2)
 
 
+def save_checkpoint(
+    model: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+    epoch: int,
+    metric_value: float,
+    output_path: Path,
+) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    torch.save(
+        {
+            "epoch": epoch,
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "metric_value": metric_value,
+        },
+        output_path,
+    )
+
+
 def plot_history(history: dict, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -39,7 +59,13 @@ def plot_history(history: dict, output_path: Path) -> None:
     train_iou = [epoch_data["iou"] for epoch_data in history["train"]]
     val_iou = [epoch_data["iou"] for epoch_data in history["val"]]
 
-    fig, axes = plt.subplots(3, 1, figsize=(8, 12))
+    train_pred_fg = [epoch_data["pred_fg_ratio"] for epoch_data in history["train"]]
+    val_pred_fg = [epoch_data["pred_fg_ratio"] for epoch_data in history["val"]]
+
+    train_target_fg = [epoch_data["target_fg_ratio"] for epoch_data in history["train"]]
+    val_target_fg = [epoch_data["target_fg_ratio"] for epoch_data in history["val"]]
+
+    fig, axes = plt.subplots(4, 1, figsize=(8, 16))
 
     axes[0].plot(epochs, train_loss, marker="o", label="train")
     axes[0].plot(epochs, val_loss, marker="o", label="val")
@@ -65,6 +91,16 @@ def plot_history(history: dict, output_path: Path) -> None:
     axes[2].legend()
     axes[2].grid(True)
 
+    axes[3].plot(epochs, train_pred_fg, marker="o", label="train predicted fg")
+    axes[3].plot(epochs, val_pred_fg, marker="o", label="val predicted fg")
+    axes[3].plot(epochs, train_target_fg, marker="o", linestyle="--", label="train target fg")
+    axes[3].plot(epochs, val_target_fg, marker="o", linestyle="--", label="val target fg")
+    axes[3].set_title("Foreground Ratio")
+    axes[3].set_xlabel("Epoch")
+    axes[3].set_ylabel("Ratio")
+    axes[3].legend()
+    axes[3].grid(True)
+
     fig.tight_layout()
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -79,6 +115,9 @@ def main() -> None:
     device = torch.device(config["training"]["device"])
     threshold = float(config["evaluation"]["threshold"])
     epsilon = float(config["evaluation"]["epsilon"])
+
+    experiment_name = config["experiment"]["name"]
+    checkpoint_metric = config["experiment"]["checkpoint_metric"]
 
     model = build_unet_from_config(config).to(device)
     criterion = build_loss_from_config(config)
@@ -95,18 +134,34 @@ def main() -> None:
     max_val_batches = int(config["training"]["max_val_batches"])
 
     history = {
+        "experiment_name": experiment_name,
         "epochs": [],
         "train": [],
         "val": [],
+        "best_epoch": None,
+        "best_val_metric": None,
+        "checkpoint_metric": checkpoint_metric,
     }
+
+    checkpoints_dir = Path(config["paths"]["checkpoints_dir"])
+    metrics_dir = Path(config["paths"]["metrics_dir"])
+    figures_dir = Path(config["paths"]["figures_dir"])
+
+    checkpoint_path = checkpoints_dir / f"{experiment_name}_best.pt"
+    metrics_output_path = metrics_dir / f"{experiment_name}_history.json"
+    figures_output_path = figures_dir / f"{experiment_name}_curves.png"
+
+    best_val_metric = float("-inf")
 
     print("=" * 60)
     print("U-Net Baseline Training")
     print("=" * 60)
+    print(f"Experiment: {experiment_name}")
     print(f"Device: {device}")
     print(f"Epochs: {num_epochs}")
     print(f"Max train batches per epoch: {max_train_batches}")
     print(f"Max val batches per epoch: {max_val_batches}")
+    print(f"Checkpoint metric: val_{checkpoint_metric}")
     print()
 
     for epoch in range(1, num_epochs + 1):
@@ -137,27 +192,47 @@ def main() -> None:
         history["train"].append(train_metrics)
         history["val"].append(val_metrics)
 
+        current_val_metric = float(val_metrics[checkpoint_metric])
+
+        if current_val_metric > best_val_metric:
+            best_val_metric = current_val_metric
+            history["best_epoch"] = epoch
+            history["best_val_metric"] = best_val_metric
+
+            save_checkpoint(
+                model=model,
+                optimizer=optimizer,
+                epoch=epoch,
+                metric_value=best_val_metric,
+                output_path=checkpoint_path,
+            )
+            print(f"[OK] New best checkpoint saved at epoch {epoch}")
+
         print(
             f"Train -> loss: {train_metrics['loss']:.6f}, "
             f"dice: {train_metrics['dice']:.6f}, "
-            f"iou: {train_metrics['iou']:.6f}"
+            f"iou: {train_metrics['iou']:.6f}, "
+            f"pred_fg: {train_metrics['pred_fg_ratio']:.6f}, "
+            f"target_fg: {train_metrics['target_fg_ratio']:.6f}"
         )
         print(
             f"Val   -> loss: {val_metrics['loss']:.6f}, "
             f"dice: {val_metrics['dice']:.6f}, "
-            f"iou: {val_metrics['iou']:.6f}"
+            f"iou: {val_metrics['iou']:.6f}, "
+            f"pred_fg: {val_metrics['pred_fg_ratio']:.6f}, "
+            f"target_fg: {val_metrics['target_fg_ratio']:.6f}"
         )
         print("-" * 60)
-
-    metrics_output_path = Path(config["paths"]["metrics_dir"]) / "unet_baseline_history.json"
-    figures_output_path = Path(config["paths"]["figures_dir"]) / "unet_baseline_curves.png"
 
     save_history(history, metrics_output_path)
     plot_history(history, figures_output_path)
 
     print("\nTraining finished successfully.")
-    print(f"Metrics saved to: {metrics_output_path}")
-    print(f"Curves saved to:  {figures_output_path}")
+    print(f"Best epoch: {history['best_epoch']}")
+    print(f"Best val {checkpoint_metric}: {history['best_val_metric']:.6f}")
+    print(f"Checkpoint saved to: {checkpoint_path}")
+    print(f"Metrics saved to:    {metrics_output_path}")
+    print(f"Curves saved to:     {figures_output_path}")
 
 
 if __name__ == "__main__":

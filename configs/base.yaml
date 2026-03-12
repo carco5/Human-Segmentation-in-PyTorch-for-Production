@@ -61,13 +61,17 @@ debug:
     batch_size: 2
     num_epochs: 12
 
+experiment:
+  name: "unet_bce_dice_local_baseline"
+  checkpoint_metric: "dice"
+
 training:
   batch_size: 4
   learning_rate: 0.001
-  num_epochs: 2
+  num_epochs: 4
   device: "cpu"
-  max_train_batches: 20
-  max_val_batches: 5
+  max_train_batches: 30
+  max_val_batches: 10
 
 paths:
   raw_data_dir: "data/raw"
@@ -76,3 +80,4 @@ paths:
   figures_dir: "outputs/figures"
   metrics_dir: "outputs/metrics"
   predictions_dir: "outputs/predictions"
+  checkpoints_dir: "outputs/checkpoints"

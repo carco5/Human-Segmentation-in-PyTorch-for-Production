@@ -5,7 +5,12 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from src.training.metrics import dice_score_from_logits, iou_score_from_logits
+from src.training.metrics import (
+    dice_score_from_logits,
+    foreground_ratio,
+    foreground_ratio_from_logits,
+    iou_score_from_logits,
+)
 
 
 def _resolve_total_batches(dataloader: DataLoader, max_batches: int | None) -> int:
@@ -35,6 +40,8 @@ def run_epoch(
     total_loss = 0.0
     total_dice = 0.0
     total_iou = 0.0
+    total_pred_fg_ratio = 0.0
+    total_target_fg_ratio = 0.0
     processed_batches = 0
 
     total_batches = _resolve_total_batches(dataloader, max_batches)
@@ -74,10 +81,17 @@ def run_epoch(
             threshold=threshold,
             epsilon=epsilon,
         )
+        batch_pred_fg_ratio = foreground_ratio_from_logits(
+            logits.detach(),
+            threshold=threshold,
+        )
+        batch_target_fg_ratio = foreground_ratio(masks.detach())
 
         total_loss += batch_loss
         total_dice += batch_dice
         total_iou += batch_iou
+        total_pred_fg_ratio += batch_pred_fg_ratio
+        total_target_fg_ratio += batch_target_fg_ratio
         processed_batches += 1
 
         progress_bar.set_postfix(
@@ -93,6 +107,8 @@ def run_epoch(
         "loss": total_loss / processed_batches,
         "dice": total_dice / processed_batches,
         "iou": total_iou / processed_batches,
+        "pred_fg_ratio": total_pred_fg_ratio / processed_batches,
+        "target_fg_ratio": total_target_fg_ratio / processed_batches,
     }
 
 
