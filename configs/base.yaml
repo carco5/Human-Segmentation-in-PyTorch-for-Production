@@ -56,8 +56,10 @@ evaluation:
 training:
   batch_size: 4
   learning_rate: 0.001
-  num_epochs: 5
+  num_epochs: 2
   device: "cpu"
+  max_train_batches: 20
+  max_val_batches: 5
 
 paths:
   raw_data_dir: "data/raw"
