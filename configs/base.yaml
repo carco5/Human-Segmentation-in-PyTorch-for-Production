@@ -40,6 +40,12 @@ dataset:
       images_dir: "data/processed/cihp_binary/val/images"
       masks_dir: "data/processed/cihp_binary/val/masks"
 
+model:
+  name: "unet"
+  in_channels: 3
+  out_channels: 1
+  base_channels: 32
+
 training:
   batch_size: 4
   learning_rate: 0.001
