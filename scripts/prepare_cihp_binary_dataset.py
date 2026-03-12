@@ -58,11 +58,10 @@ def process_split(
                 f"Category mask not found for sample '{sample_id}': {category_mask_path}"
             )
 
-        output_image_path = processed_images_dir / f"{sample_id}.png"
+        output_image_path = processed_images_dir / image_path.name
         output_mask_path = processed_masks_dir / f"{sample_id}.png"
 
-        image = Image.open(image_path).convert("RGB")
-        image.save(output_image_path)
+        shutil.copy2(image_path, output_image_path)
 
         binary_mask = build_binary_mask(category_mask_path)
         binary_mask.save(output_mask_path)

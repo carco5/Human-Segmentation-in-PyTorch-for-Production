@@ -25,11 +25,13 @@ class BinarySegmentationDataset(Dataset):
         self,
         images_dir: str | Path,
         masks_dir: str | Path,
+        image_size: int,
         image_extensions: list[str] | None = None,
         mask_extension: str = ".png",
     ) -> None:
         self.images_dir = Path(images_dir)
         self.masks_dir = Path(masks_dir)
+        self.image_size = image_size
         self.image_extensions = image_extensions or [".jpg", ".jpeg", ".png"]
         self.mask_extension = mask_extension
 
@@ -76,6 +78,9 @@ class BinarySegmentationDataset(Dataset):
         image = Image.open(image_path).convert("RGB")
         mask = Image.open(mask_path).convert("L")
 
+        image = image.resize((self.image_size, self.image_size), Image.BILINEAR)
+        mask = mask.resize((self.image_size, self.image_size), Image.NEAREST)
+
         image_array = np.asarray(image, dtype=np.float32) / 255.0
         mask_array = np.asarray(mask, dtype=np.uint8)
 
@@ -108,6 +113,7 @@ def build_dataset_from_config(
     return BinarySegmentationDataset(
         images_dir=images_dir,
         masks_dir=masks_dir,
+        image_size=config["data"]["image_size"],
         image_extensions=config["dataset"]["image_extensions"],
         mask_extension=config["dataset"]["mask_extension"],
     )
