@@ -1,21 +1,64 @@
 # Human Segmentation in PyTorch for Production
 
-End-to-end human segmentation project in PyTorch, designed with a production-oriented structure. The project will cover data handling, model training, evaluation, inference, API serving, Dockerization, and CI.
+End-to-end human segmentation project in PyTorch with a production-oriented structure.  
+The repository covers dataset preparation, preprocessing, training, evaluation, checkpointing, inference, and prediction visualization.
 
 ## Project Goal
 
-Build a complete computer vision pipeline for human segmentation, from dataset preparation and model training to inference and deployment.
+Build a complete computer vision pipeline for **binary human semantic segmentation**, from raw dataset preparation to model training and inference.
 
-## Planned Features
+## Problem Definition
 
-- Dataset organization and preprocessing
-- Human segmentation model training in PyTorch
-- Validation and evaluation with appropriate metrics
-- Inference pipeline for new images
-- API serving with FastAPI
-- Docker support
-- Basic automated tests
-- CI workflow with GitHub Actions
+- **Input:** RGB image
+- **Output:** binary segmentation mask
+  - `1` = person
+  - `0` = background
+
+The project is based on **CIHP (Crowd Instance-level Human Parsing)**, but reformulated from fine-grained human parsing into a binary human segmentation task.
+
+## Dataset Choice
+
+This project uses the **CIHP (Crowd Instance-level Human Parsing)** dataset as the main training benchmark.
+
+Although CIHP is originally designed for fine-grained human parsing, this project reformulates the task into binary semantic segmentation:
+
+- foreground (person) = `1`
+- background = `0`
+
+All human-part labels are merged into a single human class. This keeps the dataset realism and complexity while aligning the project with a production-oriented segmentation use case.
+
+## Implemented Pipeline
+
+The repository currently includes:
+
+- CIHP raw data structure validation
+- CIHP preprocessing into binary masks
+- PyTorch `Dataset` and `DataLoader`
+- Processed sample visualization
+- U-Net baseline model
+- Segmentation losses and metrics
+  - BCE
+  - BCE + Dice
+  - Dice score
+  - IoU
+- Tiny overfit sanity check
+- Baseline training loop with validation
+- Best-checkpoint saving
+- Checkpoint loading and prediction visualization
+- Separate local and Colab-oriented training configurations
+
+## Current Status
+
+The full end-to-end pipeline is already functional:
+
+- raw CIHP data can be validated and preprocessed
+- processed data can be loaded and batched
+- the U-Net baseline can be trained and validated
+- checkpoints can be saved and loaded
+- predictions can be visualized against ground truth
+
+A first local CPU baseline has already been validated.  
+The next stage is running a longer GPU training workflow in Colab.
 
 ## Repository Structure
 
@@ -37,18 +80,9 @@ Build a complete computer vision pipeline for human segmentation, from dataset p
 │   └── utils/
 ├── tests/
 ├── outputs/
+│   ├── checkpoints/
 │   ├── figures/
 │   ├── metrics/
 │   └── predictions/
 ├── requirements.txt
 └── README.md
-
-## Dataset Choice
-
-This project uses the CIHP (Crowd Instance-level Human Parsing) dataset as the main training benchmark.
-
-Although CIHP is originally designed for fine-grained human parsing, this project reformulates the task into binary semantic segmentation:
-- foreground (person) = 1
-- background = 0
-
-All human-part labels are merged into a single human class. This choice keeps the dataset complexity and realism while aligning the project with a production-oriented human segmentation use case.
