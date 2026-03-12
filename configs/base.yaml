@@ -10,6 +10,24 @@ data:
   train_split: 0.8
   val_split: 0.2
 
+dataset:
+  name: "CIHP"
+  processed_root_dir: "data/processed/cihp_binary"
+  image_extensions:
+    - ".jpg"
+    - ".jpeg"
+    - ".png"
+  mask_extension: ".png"
+  background_value: 0
+  person_value: 1
+  splits:
+    train:
+      images_dir: "data/processed/cihp_binary/train/images"
+      masks_dir: "data/processed/cihp_binary/train/masks"
+    val:
+      images_dir: "data/processed/cihp_binary/val/images"
+      masks_dir: "data/processed/cihp_binary/val/masks"
+
 training:
   batch_size: 4
   learning_rate: 0.001
