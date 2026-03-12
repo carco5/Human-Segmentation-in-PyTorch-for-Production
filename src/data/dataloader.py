@@ -12,9 +12,13 @@ def build_dataloader_from_config(
 ) -> DataLoader:
     dataset = build_dataset_from_config(config, split)
 
+    num_workers = int(config["training"].get("num_workers", 0))
+    pin_memory = bool(config["training"].get("pin_memory", False))
+
     return DataLoader(
         dataset,
         batch_size=config["training"]["batch_size"],
         shuffle=shuffle,
-        num_workers=0,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
     )

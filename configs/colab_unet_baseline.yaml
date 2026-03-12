@@ -62,12 +62,14 @@ debug:
     num_epochs: 12
 
 training:
-  batch_size: 4
+  batch_size: 8
   learning_rate: 0.001
   num_epochs: 6
   device: "cuda"
   max_train_batches: null
   max_val_batches: null
+  num_workers: 2
+  pin_memory: true
 
 experiment:
   name: "unet_bce_dice_colab_baseline"
