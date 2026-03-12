@@ -47,11 +47,19 @@ model:
   base_channels: 32
 
 loss:
-  name: "bce_with_logits"
+  name: "bce_plus_dice"
+  bce_weight: 0.5
+  dice_weight: 0.5
 
 evaluation:
   threshold: 0.5
   epsilon: 0.000001
+
+debug:
+  tiny_overfit:
+    num_samples: 8
+    batch_size: 2
+    num_epochs: 12
 
 training:
   batch_size: 4

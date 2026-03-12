@@ -67,3 +67,14 @@ def iou_score_from_logits(
 ) -> float:
     predictions = logits_to_binary_predictions(logits, threshold=threshold)
     return iou_score(predictions, targets, epsilon=epsilon)
+
+def foreground_ratio(mask: torch.Tensor) -> float:
+    return mask.float().mean().item()
+
+
+def foreground_ratio_from_logits(
+    logits: torch.Tensor,
+    threshold: float = 0.5,
+) -> float:
+    predictions = logits_to_binary_predictions(logits, threshold=threshold)
+    return foreground_ratio(predictions)
