@@ -42,3 +42,13 @@ Build a complete computer vision pipeline for human segmentation, from dataset p
 │   └── predictions/
 ├── requirements.txt
 └── README.md
+
+## Dataset Choice
+
+This project uses the CIHP (Crowd Instance-level Human Parsing) dataset as the main training benchmark.
+
+Although CIHP is originally designed for fine-grained human parsing, this project reformulates the task into binary semantic segmentation:
+- foreground (person) = 1
+- background = 0
+
+All human-part labels are merged into a single human class. This choice keeps the dataset complexity and realism while aligning the project with a production-oriented human segmentation use case.
