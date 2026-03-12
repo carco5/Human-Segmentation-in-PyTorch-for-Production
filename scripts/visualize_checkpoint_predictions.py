@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -6,6 +7,17 @@ import torch
 from src.data.dataset import build_dataset_from_config
 from src.inference.predict import get_checkpoint_path, load_model_from_checkpoint, predict_from_image_tensor
 from src.utils.config import load_config
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Visualize checkpoint predictions.")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/base.yaml",
+        help="Path to the YAML configuration file.",
+    )
+    return parser.parse_args()
 
 
 def tensor_to_image(image_tensor: torch.Tensor):
@@ -25,7 +37,8 @@ def make_overlay(image, mask):
 
 
 def main() -> None:
-    config = load_config("configs/base.yaml")
+    args = parse_args()
+    config = load_config(args.config)
 
     device = torch.device(config["training"]["device"])
     threshold = float(config["evaluation"]["threshold"])
@@ -93,6 +106,7 @@ def main() -> None:
     print("=" * 60)
     print("Checkpoint Prediction Visualization")
     print("=" * 60)
+    print(f"Config path: {args.config}")
     print(f"Checkpoint path: {checkpoint_path}")
     print(f"Checkpoint epoch: {checkpoint['epoch']}")
     print(f"Checkpoint metric value: {checkpoint['metric_value']:.6f}")

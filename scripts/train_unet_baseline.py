@@ -1,3 +1,4 @@
+import argparse
 import json
 import random
 from pathlib import Path
@@ -11,6 +12,41 @@ from src.models.unet import build_unet_from_config
 from src.training.engine import train_one_epoch, validate_one_epoch
 from src.training.losses import build_loss_from_config
 from src.utils.config import load_config
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Train U-Net baseline for binary human segmentation.")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/base.yaml",
+        help="Path to the YAML configuration file.",
+    )
+    parser.add_argument(
+        "--num-epochs",
+        type=int,
+        default=None,
+        help="Optional override for number of epochs.",
+    )
+    parser.add_argument(
+        "--max-train-batches",
+        type=int,
+        default=None,
+        help="Optional override for max train batches per epoch.",
+    )
+    parser.add_argument(
+        "--max-val-batches",
+        type=int,
+        default=None,
+        help="Optional override for max validation batches per epoch.",
+    )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default=None,
+        help="Optional override for device (e.g. cpu, cuda).",
+    )
+    return parser.parse_args()
 
 
 def set_seed(seed: int) -> None:
@@ -106,13 +142,22 @@ def plot_history(history: dict, output_path: Path) -> None:
     plt.close(fig)
 
 
+def resolve_optional_int(value):
+    if value is None:
+        return None
+    return int(value)
+
+
 def main() -> None:
-    config = load_config("configs/base.yaml")
+    args = parse_args()
+    config = load_config(args.config)
 
     seed = int(config["project"]["seed"])
     set_seed(seed)
 
-    device = torch.device(config["training"]["device"])
+    device_name = args.device if args.device is not None else config["training"]["device"]
+    device = torch.device(device_name)
+
     threshold = float(config["evaluation"]["threshold"])
     epsilon = float(config["evaluation"]["epsilon"])
 
@@ -129,12 +174,21 @@ def main() -> None:
     train_loader = build_dataloader_from_config(config, split="train", shuffle=True)
     val_loader = build_dataloader_from_config(config, split="val", shuffle=False)
 
-    num_epochs = int(config["training"]["num_epochs"])
-    max_train_batches = int(config["training"]["max_train_batches"])
-    max_val_batches = int(config["training"]["max_val_batches"])
+    num_epochs = int(args.num_epochs) if args.num_epochs is not None else int(config["training"]["num_epochs"])
+    max_train_batches = (
+        int(args.max_train_batches)
+        if args.max_train_batches is not None
+        else resolve_optional_int(config["training"]["max_train_batches"])
+    )
+    max_val_batches = (
+        int(args.max_val_batches)
+        if args.max_val_batches is not None
+        else resolve_optional_int(config["training"]["max_val_batches"])
+    )
 
     history = {
         "experiment_name": experiment_name,
+        "config_path": args.config,
         "epochs": [],
         "train": [],
         "val": [],
@@ -156,6 +210,7 @@ def main() -> None:
     print("=" * 60)
     print("U-Net Baseline Training")
     print("=" * 60)
+    print(f"Config: {args.config}")
     print(f"Experiment: {experiment_name}")
     print(f"Device: {device}")
     print(f"Epochs: {num_epochs}")
