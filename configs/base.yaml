@@ -46,6 +46,13 @@ model:
   out_channels: 1
   base_channels: 32
 
+loss:
+  name: "bce_with_logits"
+
+evaluation:
+  threshold: 0.5
+  epsilon: 0.000001
+
 training:
   batch_size: 4
   learning_rate: 0.001
