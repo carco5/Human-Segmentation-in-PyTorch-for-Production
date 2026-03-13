@@ -45,25 +45,60 @@ The repository currently includes:
 - Baseline training loop with validation
 - Best-checkpoint saving
 - Checkpoint loading and prediction visualization
-- Separate local and Colab-oriented training configurations
+- Separate local, Colab, and Kaggle-oriented training configurations
 
-## Current Status
+## Final Training Setup
 
-The full end-to-end pipeline is already functional:
+The final baseline model was trained on **Kaggle GPU (T4)** using:
 
-- raw CIHP data can be validated and preprocessed
-- processed data can be loaded and batched
-- the U-Net baseline can be trained and validated
-- checkpoints can be saved and loaded
-- predictions can be visualized against ground truth
+- **Model:** U-Net
+- **Loss:** BCE + Dice
+- **Image size:** 256 × 256
+- **Batch size:** 8
+- **Epochs:** 6
+- **Optimizer:** Adam
+- **Dataset:** CIHP reformulated as binary human segmentation
 
-A first local CPU baseline has already been validated.  
-The next stage is running a longer GPU training workflow in Colab.
+## Final Results
+
+Best validation results obtained during the Kaggle GPU training run:
+
+- **Best epoch:** 6
+- **Validation Dice:** **0.8832**
+- **Validation IoU:** **0.8045**
+
+Additional observations:
+
+- train and validation metrics remain very close, suggesting good generalization
+- predicted foreground ratio is also very close to the real foreground ratio, indicating a well-balanced segmentation behavior
+
+## Result Visualizations
+
+### Loss
+
+![Loss Curve](assets/kaggle_loss_curve.png)
+
+### Dice
+
+![Dice Curve](assets/kaggle_dice_curve.png)
+
+### IoU
+
+![IoU Curve](assets/kaggle_iou_curve.png)
+
+### Foreground Ratio
+
+![Foreground Ratio Curve](assets/kaggle_foreground_ratio_curve.png)
+
+### Validation Predictions
+
+![Validation Predictions](assets/kaggle_validation_predictions.png)
 
 ## Repository Structure
 
 ```text
 .
+├── assets/
 ├── configs/
 ├── data/
 │   ├── raw/
