@@ -94,6 +94,34 @@ Additional observations:
 
 ![Validation Predictions](assets/kaggle_validation_predictions.png)
 
+## Main Training Configurations
+
+- `configs/base.yaml`  
+  Local baseline configuration for CPU development and controlled experiments.
+
+- `configs/colab_unet_baseline.yaml`  
+  GPU-oriented configuration prepared for Colab runs.
+
+- `configs/kaggle_unet_baseline.yaml`  
+  Final Kaggle GPU training configuration used for the reported baseline results.
+
+## Notes
+
+- Dataset files, checkpoints, generated figures, and prediction outputs are intentionally ignored by Git.
+- GitHub contains the **code and reproducible pipeline**, not the full dataset itself.
+- The repository is structured to support both local development and GPU-based training.
+
+## Next Steps
+
+Possible future improvements for a second version of the project:
+
+- stronger augmentations
+- aspect-ratio preserving resize + padding
+- alternative encoder backbones
+- learning-rate scheduling
+- threshold calibration
+- comparison against additional segmentation architectures
+
 ## Repository Structure
 
 ```text
